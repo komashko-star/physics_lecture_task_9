@@ -7,7 +7,8 @@ var arrowLength = 30;
 
 var color_gradient_start = 0;
 var color_gradient_finish = 40;
-  
+
+var dontShowBound = 0;
 
 var border = null;
 
@@ -210,7 +211,10 @@ function redraw() {
     for (let y = border.y_domain_start; y < border.y_domain; y += dy) {      
       let E_vector = calculateFieldStrength(x, y);
       
-      drawVector(chartContext, x, y, E_vector);
+      let E_vector_length = Math.hypot(E_vector[0], E_vector[1]);
+      if (E_vector_length >= dontShowBound) {
+        drawVector(chartContext, x, y, E_vector);
+      }
     }
   }
 
@@ -246,12 +250,15 @@ function collectData() {
     charges_.push([x_0_, y_0_, q_0_ * Math.pow(10, q_0_exp)]);
   }
   
-  let arrowDensity_ = parseInt(document.getElementById('arrowdensity').value);  
+  let arrowDensity_ = parseInt(document.getElementById('arrowdensity').value);
   if (arrowDensity_ <= 0) {
     window.alert('Плотность стрелок не может быть неположительной');
     return;
   }
   
+  let dontShowBound_ = parseFloat(document.getElementById('dontshowbound').value);
+  dontShowBound_ *= Math.pow(10, parseInt(document.getElementById('dontshowboundexp').value));
+
   let MAX_X_DOMAIN_ = parseFloat(document.getElementById('x_domain').value) / 2;
   if (MAX_X_DOMAIN_ <= 0) {
     window.alert('Ширина области не может быть неположительной');
@@ -260,7 +267,7 @@ function collectData() {
   color_gradient_finish = parseFloat(document.getElementById('colorsq5value').value);
   color_gradient_finish *= Math.pow(10, parseInt(document.getElementById('colorsq5exp').value));
 
-  return [charges_, MAX_X_DOMAIN_, arrowDensity_];
+  return [charges_, MAX_X_DOMAIN_, arrowDensity_, dontShowBound_];
 }
 
 
@@ -269,7 +276,7 @@ function reloadForm() {
   if (data == null) {
     return;
   }
-  let old_data = [charges, MAX_X_DOMAIN, arrowDensity];
+  let old_data = [charges, MAX_X_DOMAIN, arrowDensity, dontShowBound];
   let are_equal = old_data.length === data.length && old_data.every(function(value, index) { return value === data[index]});
   if (are_equal){
     document.getElementById('curtain').style.visibility = 'visible';
@@ -277,7 +284,7 @@ function reloadForm() {
     document.getElementById('curtain').style.visibility = 'hidden';
     return;
   }
-  [charges, MAX_X_DOMAIN, arrowDensity] = data;
+  [charges, MAX_X_DOMAIN, arrowDensity, dontShowBound] = data;
 
   document.getElementById('curtain').style.visibility = 'visible';
   reloadModel();
